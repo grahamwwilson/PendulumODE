@@ -327,7 +327,7 @@ ax3.set_ylabel('omega')
 ax3.set_xlim(-1.05*theta0, 1.05*theta0)
 
 plt.tight_layout()
-plt.show()
+#plt.show()
 
 nrows, ncols = psoln.shape
 print(nrows)
@@ -369,7 +369,7 @@ plt.plot(t,DragAngAcc,'bo')
 plt.title('Drag Angular Acceleration vs t')
 plt.xlabel('t [s]')
 plt.ylabel('Drag Angular Acceleration [rad/s^2]')
-plt.show()
+#plt.show()
 
 # Add header line to output files (ignorable by python numpy etc).
 print('# eventtype event clockticks time[s]  Energy[%]',file=simdatafile)
