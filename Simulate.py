@@ -26,6 +26,7 @@ from myrandom import *
 import matplotlib.pyplot as plt
 from scipy.integrate import odeint
 from scipy import special
+import argparse
 
 def f(y, t, params):
     theta, omega = y          # unpack current values of y
@@ -55,6 +56,24 @@ def f2(y, t, params):
              -w0sq*np.sin(theta) -alphad*sign]
     return derivs
 
+parser = argparse.ArgumentParser(description='Pendulum Timer Simulator with ODE')
+parser.add_argument("-n", "--noscs", type=int, default=130, help="Number of oscillations to simulate")
+parser.add_argument("-d", "--drag", type=float, default=0.032, help="Drag")
+parser.add_argument("-l", "--linearf", type=float, default=0.63, help="Linear fraction")
+parser.add_argument("-q", "--theta0", type=float, default=0.54, help="Initial angle (rad)")
+parser.add_argument("-t", "--ftup", type=float, default=0.2806, help="Up-stream laser angle fraction")
+parser.add_argument("-e", "--effw", type=float, default=0.966, help="Up-stream laser effective width")
+
+args=parser.parse_args()
+print('Found argument list: ')
+print(args)
+NOSCS = args.noscs      # Number of oscillations to simulate       
+drag=args.drag          # Drag angular acceleration at equilibrium position [rad/s^2] 
+linearf=args.linearf    # Linear drag fraction at equilibrium position
+theta0=args.theta0      # Initial angle (rad)
+FTHETAU=args.ftup       # Angle of up-stream laser as fraction of theta0
+EFFWIDTHU=args.effw     # Effective width of up-stream laser
+
 # Toy MC parameters
 TOFFSET = 0.0     # Set start-time of oscillation [seconds] 
 TRMS = 1.0e-6    # error on each time measurement [seconds]
@@ -83,8 +102,6 @@ L = 0.33474      # pendulum length [m]
 TFACTOR=0.9999634350018175 # Factor to adjust length to give correct average period
 L=L*TFACTOR**2
     
-#theta0 = 0.5349615 # initial angular displacement [rad]
-theta0 = 0.54
 omega0 = 0.0       # initial angular velocity [rad/s]
 EoverM0 = G*L*(1.0 - np.cos(theta0))  # Initial value of E/m
 
@@ -97,8 +114,6 @@ wmaxsq = 2.0*w0sq*(1.0-math.cos(theta0))  # max angular velocity squared assumin
 # Configure with given fractions of linear and quadratic drag at first equilibrium position
 # (computed neglecting drag on 1/4 cycle from theta=theta_0 to theta=0 --- equivalent to 
 #  starting the pendulum with initial conditions of theta=0, and same initial E).
-drag = 0.032                  # drag angular acceleration at equilibrium position [rad/s^2] 
-linearf = 0.63                # linear drag fraction at equilibrium position
 quadraticf = 1.0 - linearf    # quadratic drag fraction at equilibrium position
 gamma = drag*linearf/math.sqrt(wmaxsq)   # linear drag parameter
 K = drag*quadraticf/wmaxsq               # quadratic drag parameter
@@ -143,18 +158,15 @@ dt=999.0
 
 TOLERANCE = 1.0e-12
 
-TUP  = 0.1515 # Upstream laser position
+TUP  = theta0*FTHETAU # Upstream laser position
 # We know the upstream laser is not centered on the bob height.
 # So effective width of the transition is smaller
-EFFWIDTH = 0.966
-TMAX = TUP + EFFWIDTH*(0.50*D/L)   # upstream laser at TUP rad          
-TMIN = TUP - EFFWIDTH*(0.50*D/L)   #  "
+TMAX = TUP + EFFWIDTHU*(0.50*D/L)   # upstream laser at TUP rad          
+TMIN = TUP - EFFWIDTHU*(0.50*D/L)   #  "
 
 TDOWN = -0.001            # small offset of downstream laser from equilibrium position
 TARGET_THETAP = TDOWN+0.50*D/L
 TARGET_THETAM = TDOWN-0.50*D/L
-
-NOSC = 130 # Number of oscillations to simulate
 
 times_list = []
 theta_list = []
@@ -174,7 +186,7 @@ print(targeto)
 # possible to the requested value (targett) 
 # with the requested sign of omega (targeto)
 
-while evolutionStep < NOSC:     # controls number of complete cycles (8 measurements per cycle).
+while evolutionStep < NOSCS:     # controls number of complete cycles (8 measurements per cycle).
 
    for x in range(len(targett)):
        targt = targett[x]
@@ -397,7 +409,7 @@ period0 = 4.0*( (t2+t3)/2.0 )
 period1 = 2.0 * ( ((t4+t5)/2.0) - ((t2+t3)/2.0) )
 print('Period 0 (  0 -  90) = ',period0,' ang. speed (rad/s) ',DTHETA/(t3-t2))
 print('Period 1 ( 90 - 270) = ',period1,' ang. speed (rad/s) ',DTHETA/(t5-t4))
-if NOSC >=3:
+if NOSCS >=3:
    t10 = times_list[10]
    t11 = times_list[11]
    t12 = times_list[12]
