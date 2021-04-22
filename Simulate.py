@@ -17,8 +17,8 @@
 # position ("downstream" one), and the other is displaced "upstream".
 # This leads to eight pendulum transition events per cycle, 
 # four for each laser. In the simulated case, the bob is launched 
-# from, theta = +600 mrad, and encounters the upstream laser centered 
-# on theta = +150 mrad, and the downstream laser centered on theta = 0 mrad. 
+# from, theta = theta_0, and encounters the upstream laser centered 
+# on theta = theta_up, and the downstream laser centered near theta = 0 mrad. 
 import numpy as np
 import math
 import random
@@ -28,6 +28,8 @@ from scipy.integrate import odeint
 from scipy import special
 import argparse
 
+# function only depends on w0sq, K, gamma. 
+# But send longer list of parameters for compatibility with Reynolds number based approach of function f2.
 def f(y, t, params):
     theta, omega = y          # unpack current values of y
     w0sq, K, gamma, L, rhoF, mu, D, mass, Irot = params   # unpack parameters
@@ -35,6 +37,7 @@ def f(y, t, params):
              -w0sq*np.sin(theta) -K*omega*abs(omega) -gamma*omega]
     return derivs
 
+# Currently only function f above is used in the code.
 def f2(y, t, params):
 # Use Cheng formula
     theta, omega = y            # unpack current values of y
