@@ -182,6 +182,12 @@ targeto   = [ -1, -1, -1, -1, +1, +1, +1, +1 ]
 # event type ("U" for upstream laser, "D" for downstream laser)
 eventtype = [  "U",  "U",  "D",  "D",  "D", "D",  "U",  "U" ]
 
+# Calculate the energy
+EoverM = G*L*(1.0 - np.cos(TMAX) )
+Ecritical = 1.0005*100.0*(EoverM/EoverM0)
+Efnext =100.0  # Initialize
+print('Ecritical set to ',Ecritical)
+
 print(targett)
 print(targeto)
 
@@ -189,15 +195,18 @@ print(targeto)
 # possible to the requested value (targett) 
 # with the requested sign of omega (targeto)
 
-while evolutionStep < NOSCS:     # controls number of complete cycles (8 measurements per cycle).
-
+while evolutionStep < NOSCS and Efnext > Ecritical:  # controls number of complete cycles (8 measurements per cycle)
+                                                     # Only start new cycle if new cycle is estimated to lead to each of the 8 measurements
    for x in range(len(targett)):
        targt = targett[x]
        targo = targeto[x]
        dt = 999.0
        print('x loop',targt,targo)
 
-       while abs(dt) > TOLERANCE:
+       ntries = 0
+
+       while abs(dt) > TOLERANCE  and ntries < 100:
+           ntries = ntries + 1
 # Make time array for solution for this iteration from tStart to tStop
            numSteps = 1001
            t=np.linspace(tStart,tStop,numSteps)
@@ -242,6 +251,9 @@ while evolutionStep < NOSCS:     # controls number of complete cycles (8 measure
               energy_list.append(energy)
               theta0estimate = math.acos(1.0 - (energy/(G*L)))
 # Next loop - reset 
+       print('ntries =',ntries)
+       if ntries==100:
+          print('Non-convergence ',evolutionStep,targt,targo,tStart,tStop)
        tStart = tStart_list[evolutionStep]
        tStop  = tStop_list[evolutionStep]
    evolutionStep +=1
@@ -289,6 +301,9 @@ while evolutionStep < NOSCS:     # controls number of complete cycles (8 measure
          print(i,tvalue,theta,omega,Efraction,ThetaMax[i],OmegaMax[i],DragAngAcc[i],file=oscillationsfile)
       elif i!=0:
          print(1000*(evolutionStep-1)+i,tvalue,theta,omega,Efraction,ThetaMax[i],OmegaMax[i],DragAngAcc[i],file=oscillationsfile)
+# Estimate the energy fractionafter the next complete oscillation
+   Efnext = Energy[nrows-1]*(Energy[nrows-1]/Energy[0])
+   print('Efnext = ',Efnext)
 # We continue to loop until the number of oscillations requested are completed.
 
 # Plot results. As it stands ALL these are just for the final oscillation
