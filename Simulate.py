@@ -66,6 +66,8 @@ parser.add_argument("-l", "--linearf", type=float, default=0.63, help="Linear fr
 parser.add_argument("-q", "--theta0", type=float, default=0.54, help="Initial angle (rad)")
 parser.add_argument("-t", "--ftup", type=float, default=0.2806, help="Up-stream laser angle fraction")
 parser.add_argument("-e", "--effw", type=float, default=0.966, help="Up-stream laser effective width")
+parser.add_argument("-s", "--steps", type=int, default=1000, help="ODE steps per oscillation")
+parser.add_argument("-r", "--res", type=float, default=1.0e-6, help="Measurement time resolution")
 
 args=parser.parse_args()
 print('Found argument list: ')
@@ -76,14 +78,16 @@ linearf=args.linearf    # Linear drag fraction at equilibrium position
 theta0=args.theta0      # Initial angle (rad)
 FTHETAU=args.ftup       # Angle of up-stream laser as fraction of theta0
 EFFWIDTHU=args.effw     # Effective width of up-stream laser
+steps=args.steps        # ODE steps
+TRMS =args.res          # Time resolution in seconds
 
 # Toy MC parameters
 TOFFSET = 0.0     # Set start-time of oscillation [seconds] 
-TRMS = 1.0e-6    # error on each time measurement [seconds]
 # Clock frequency depends on which timer circuit is used
 CLOCKFREQ1 = 5.013290e6 # Hz (calibrated approximately using computer clock-time 
                         #     between (D2,3) and (D1034,1035) for Run 76.) 
-CLOCKFREQ0 = CLOCKFREQ1/1.00057665 # Hz  (Measured using run 83 asymmetry)
+#CLOCKFREQ0 = CLOCKFREQ1/1.00057665 # Hz  (Measured using run 83 asymmetry)
+CLOCKFREQ0 = CLOCKFREQ1/1.0005862 # Hz  (Measured using run 76 asymmetry)
 CLOCKFREQU = CLOCKFREQ0 # Swapped configuration of run 76
 CLOCKFREQD = CLOCKFREQ1 # Swapped configuation of run 76
 SEED = 202
@@ -208,7 +212,7 @@ while evolutionStep < NOSCS and Efnext > Ecritical:  # controls number of comple
        while abs(dt) > TOLERANCE  and ntries < 100:
            ntries = ntries + 1
 # Make time array for solution for this iteration from tStart to tStop
-           numSteps = 1001
+           numSteps = steps + 1
            t=np.linspace(tStart,tStop,numSteps)
 # Call the ODE solver
            psoln = odeint(f, y0, t, rtol=0.5e-12, atol=0.5e-12, args=(params,))
@@ -258,7 +262,7 @@ while evolutionStep < NOSCS and Efnext > Ecritical:  # controls number of comple
        tStop  = tStop_list[evolutionStep]
    evolutionStep +=1
 # First advance by one cycle
-   numSteps = 1001
+   numSteps = steps + 1
    ilast = numSteps - 1
    t=np.linspace(tStart_list[evolutionStep-1],tStop_list[evolutionStep-1],numSteps)
 # Call the ODE solver
@@ -300,7 +304,7 @@ while evolutionStep < NOSCS and Efnext > Ecritical:  # controls number of comple
       if i==0 and evolutionStep==1:
          print(i,tvalue,theta,omega,Efraction,ThetaMax[i],OmegaMax[i],DragAngAcc[i],file=oscillationsfile)
       elif i!=0:
-         print(1000*(evolutionStep-1)+i,tvalue,theta,omega,Efraction,ThetaMax[i],OmegaMax[i],DragAngAcc[i],file=oscillationsfile)
+         print(steps*(evolutionStep-1)+i,tvalue,theta,omega,Efraction,ThetaMax[i],OmegaMax[i],DragAngAcc[i],file=oscillationsfile)
 # Estimate the energy fractionafter the next complete oscillation
    Efnext = Energy[nrows-1]*(Energy[nrows-1]/Energy[0])
    print('Efnext = ',Efnext)
@@ -405,10 +409,10 @@ for x in range(len(times_list)):
     tmeas = NormalVariate(tcurrent, TRMS)  # this function is in myrandom.py
     if eventtype[x%8]=="U":
        print('event type U')
-       tmeasclockticks = int(tmeas*CLOCKFREQU)
+       tmeasclockticks = int(tmeas*CLOCKFREQU + 0.5)  # Add 0.5 to avoid rounding bias
     if eventtype[x%8]=="D":
        print('event type D')
-       tmeasclockticks = int(tmeas*CLOCKFREQD)
+       tmeasclockticks = int(tmeas*CLOCKFREQD + 0.5)  # Add 0.5 to avoid rounding bias
     efraction = 100.0*energy_list[x]/EoverM0
     print(eventtype[x%8],x,tmeasclockticks,tcurrent,efraction,file=simdatafile)
 

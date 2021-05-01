@@ -1,0 +1,11 @@
+V102:
+python Simulate.py -n 200 -s 1000 -l 1.00 -d 0.0291
+
+V103
+python Simulate.py -n 200 -s 1000 -l 1.00 -d 0.0291 -r 1.0e-10
+
+V104 (same as V103 but +0.5 in int(tmeas*CLOCKFREQ + 0.5) )
+python Simulate.py -n 200 -s 1000 -l 1.00 -d 0.0291 -r 1.0e-10
+
+V105 Same as V104 expect clock frequency difference changed.
+python Simulate.py -n 200 -s 1000 -l 1.00 -d 0.0291 -r 1.0e-10
