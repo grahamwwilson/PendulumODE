@@ -32,3 +32,13 @@ are not simulated because of the above check) are
 SimDataFile-101.dat.gz
 and
 Oscillations-101.dat.gz
+
+Update
+Added LOGBOOK.txt
+Added ODE steps and time resolution parameters.
+Updated clock tick calculation to avoid rounding bias.
+Update clock frequencies.
+
+Latest run (105) uses
+python Simulate.py -n 200 -l 1.00 -d 0.0291 -r 1.0e-10
+(l, d were adjusted to give the same number of oscillations as run 76)

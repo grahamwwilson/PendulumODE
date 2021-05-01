@@ -409,7 +409,7 @@ for x in range(len(times_list)):
     tmeas = NormalVariate(tcurrent, TRMS)  # this function is in myrandom.py
     if eventtype[x%8]=="U":
        print('event type U')
-       tmeasclockticks = int(tmeas*CLOCKFREQU + 0.5)  # Add 0.5 to avoid rounding bias
+       tmeasclockticks = int(tmeas*CLOCKFREQU + 0.5)  # Add 0.5 to avoid rounding bias 
     if eventtype[x%8]=="D":
        print('event type D')
        tmeasclockticks = int(tmeas*CLOCKFREQD + 0.5)  # Add 0.5 to avoid rounding bias
